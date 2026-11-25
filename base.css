@@ -1,0 +1,264 @@
+/* Accountea - shared look: colour tokens (dark + light), brand, theme toggle, form controls.
+   Palette is taken from the background image (glitch-bg.png): deep teal #064d6d -> #197491 -> aqua #a3f6f0.
+   Shared look: colours, brand, theme toggle, form controls. */
+
+:root,
+:root[data-theme="dark"] {
+  --bg: #031f2c;
+  --bg-overlay: linear-gradient(100deg, rgba(2, 27, 39, 0.72), rgba(2, 27, 39, 0.92) 70%);
+  --sidebar: #04202e;
+  --glass: #06293a;
+  --panel: #06293a;
+  --panel-2: rgba(143, 243, 246, 0.1);
+  --line: rgba(143, 243, 246, 0.34);
+  --text: #f2feff;
+  --muted: #c4e6eb;
+  --faint: #93c2cc;
+  --accent: #45e0ec;
+  --accent-strong: #8ff3f6;
+  --accent-soft: rgba(69, 224, 236, 0.2);
+  --accent-text: #8ff3f6;
+  --on-accent: #02222d;
+  --orange: #ffbb7a;
+  --orange-soft: rgba(255, 187, 122, 0.2);
+  --green: #5ff0ab;
+  --green-soft: rgba(95, 240, 171, 0.18);
+  --red: #ff9d8d;
+  --red-soft: rgba(255, 157, 141, 0.2);
+  --blue: #a3c4ff;
+  --blue-soft: rgba(163, 196, 255, 0.2);
+  --card-shadow: 0 30px 80px -40px rgba(0, 0, 0, 0.7);
+  --card-radius: 0px; /* square panels, like the cards. Try 16px for rounded ones. */
+  color-scheme: dark;
+}
+
+:root[data-theme="light"] {
+  --bg: #dff3f6;
+  --bg-overlay: linear-gradient(100deg, rgba(236, 250, 252, 0.82), rgba(226, 246, 249, 0.94) 70%);
+  --sidebar: #f7fdfe;
+  --glass: #ffffff;
+  --panel: #ffffff;
+  --panel-2: rgba(7, 95, 116, 0.09);
+  --line: rgba(4, 70, 88, 0.3);
+  --text: #03202b;
+  --muted: #2b5565;
+  --faint: #4f7886;
+  --accent: #075f74;
+  --accent-strong: #054a5b;
+  --accent-soft: rgba(7, 95, 116, 0.14);
+  --accent-text: #055266;
+  --on-accent: #ffffff;
+  --orange: #9a4a00;
+  --orange-soft: rgba(154, 74, 0, 0.14);
+  --green: #07744a;
+  --green-soft: rgba(7, 116, 74, 0.14);
+  --red: #b3261a;
+  --red-soft: rgba(179, 38, 26, 0.12);
+  --blue: #1c4fb8;
+  --blue-soft: rgba(28, 79, 184, 0.12);
+  --card-shadow: 0 24px 60px -36px rgba(4, 60, 76, 0.55);
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg-overlay), url("glitch-bg.png") center / cover fixed, var(--bg);
+  color: var(--text);
+  font: 15px/1.55 "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---------- brand ---------- */
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.logo {
+  display: grid;
+  flex: none;
+  width: 50px;
+  height: 50px;
+  place-items: center;
+  border-radius: 15px;
+  background: linear-gradient(135deg, #34d399, #10b981);
+  box-shadow: 0 8px 22px -8px rgba(16, 185, 129, 0.7);
+  color: #052e1c;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.wordmark {
+  font-size: 29px;
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 1;
+}
+
+.wordmark .tea {
+  color: var(--accent);
+}
+
+/* ---------- light / dark toggle (sun + moon) ---------- */
+
+.theme-toggle {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  width: 76px;
+  height: 38px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--panel-2);
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.theme-toggle:hover {
+  border-color: var(--faint);
+}
+
+.tt-icon {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  width: 50%;
+  height: 100%;
+  place-items: center;
+  transition: color 0.2s;
+}
+
+.tt-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.tt-knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 34px;
+  height: 32px;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:root[data-theme="dark"] .tt-knob {
+  transform: translateX(36px);
+}
+
+:root[data-theme="light"] .tt-sun,
+:root[data-theme="dark"] .tt-moon {
+  color: var(--on-accent);
+}
+
+/* ---------- form controls ---------- */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+input,
+select {
+  width: 100%;
+  height: 46px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--panel-2);
+  color: var(--text);
+  padding: 0 14px;
+  font: inherit;
+  font-size: 15px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+input:hover,
+select:hover {
+  border-color: var(--faint);
+}
+
+input:focus,
+select:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+input::placeholder {
+  color: var(--faint);
+}
+
+select {
+  padding-right: 40px;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2354909f' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-position: right 14px center;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+select option {
+  background: var(--panel);
+  color: var(--text);
+}
+
+button.primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 46px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--accent);
+  box-shadow: 0 8px 18px -8px var(--accent);
+  color: var(--on-accent);
+  padding: 0 22px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+}
+
+button.primary:hover {
+  background: var(--accent-strong);
+  transform: translateY(-1px);
+}
+
+button.primary:active {
+  transform: none;
+}
+
+button.primary:disabled {
+  opacity: 0.6;
+  cursor: wait;
+  transform: none;
+}
+
+.error {
+  min-height: 20px;
+  margin-top: 12px;
+  color: var(--red);
+  font-size: 13.5px;
+}

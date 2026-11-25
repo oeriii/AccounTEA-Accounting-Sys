@@ -1,0 +1,12 @@
+{
+  "name": "accountea",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Accountea - a small accounting workspace",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=16"
+  }
+}
