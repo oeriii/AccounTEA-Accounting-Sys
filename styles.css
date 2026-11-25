@@ -1198,3 +1198,130 @@ th {
 .table-wrap.compact td:first-child {
   white-space: nowrap;
 }
+
+/* ---------- edit / delete buttons + pop-up window ---------- */
+
+.row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+button.edit {
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--muted);
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+button.edit:hover {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+
+button.delete,
+button.edit {
+  min-height: 30px;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(2, 20, 30, 0.7);
+  backdrop-filter: blur(3px);
+}
+
+.modal {
+  width: 100%;
+  max-width: 520px;
+  max-height: 92vh;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--accent);
+  background: var(--panel);
+  color: var(--text);
+  padding: 24px;
+  box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.7);
+}
+
+.modal.danger {
+  border-top-color: var(--red);
+}
+
+.modal h2 {
+  margin: 0 0 14px;
+  font-size: 19px;
+}
+
+.modal-body p {
+  margin: 0 0 10px;
+}
+
+.modal-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.modal-form .wide-field {
+  grid-column: 1 / -1;
+}
+
+.modal-form input:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.modal-error:empty {
+  display: none;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+button.ghost {
+  height: 46px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: none;
+  color: var(--text);
+  padding: 0 20px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button.ghost:hover {
+  background: var(--panel-2);
+  border-color: var(--faint);
+}
+
+button.primary.danger-btn {
+  background: var(--red);
+  box-shadow: none;
+  color: var(--on-accent);
+}
+
+button.primary.danger-btn:hover {
+  background: var(--red);
+  filter: brightness(1.1);
+}
+
+@media (max-width: 560px) {
+  .modal-form {
+    grid-template-columns: 1fr;
+  }
+}

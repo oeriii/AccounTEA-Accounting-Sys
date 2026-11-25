@@ -173,6 +173,60 @@ function formHead(iconName, tone, title, subtitle) {
     </div>`;
 }
 
+// ---------- pop-up window (confirm + edit) ----------
+
+let modalHandler = null;
+
+function closeModal() {
+  const box = $("#modal");
+  if (box) box.remove();
+  modalHandler = null;
+  document.removeEventListener("keydown", modalKey);
+}
+
+function modalKey(event) {
+  if (event.key === "Escape") closeModal();
+}
+
+// onOk may return a message to show an error and keep the window open
+function openModal(title, bodyHtml, okLabel, onOk, danger) {
+  closeModal();
+  const wrap = document.createElement("div");
+  wrap.id = "modal";
+  wrap.className = "modal-backdrop";
+  wrap.innerHTML = `
+    <div class="modal${danger ? " danger" : ""}" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <h2 id="modal-title">${title}</h2>
+      <div class="modal-body">${bodyHtml}</div>
+      <div class="error modal-error" id="modal-error"></div>
+      <div class="modal-actions">
+        ${onOk ? `<button type="button" class="ghost" onclick="closeModal()">Cancel</button>` : ""}
+        <button type="button" class="primary${danger ? " danger-btn" : ""}" id="modal-ok">${okLabel}</button>
+      </div>
+    </div>`;
+  document.body.appendChild(wrap);
+  wrap.addEventListener("mousedown", function (event) {
+    if (event.target === wrap) closeModal();
+  });
+  document.addEventListener("keydown", modalKey);
+  modalHandler = onOk || null;
+  $("#modal-ok").addEventListener("click", function () {
+    if (!modalHandler) return closeModal();
+    const problem = modalHandler();
+    if (problem) $("#modal-error").textContent = problem;
+    else closeModal();
+  });
+  const first = wrap.querySelector("input, select");
+  (first || $("#modal-ok")).focus();
+}
+
+function rowActions(editCall, deleteCall, key) {
+  return `<div class="row-actions">
+    <button class="edit" title="Edit" aria-label="Edit" data-key="${escapeHtml(String(key))}" onclick="${editCall}(this.dataset.key)">${icon("edit", 16)}</button>
+    <button class="delete" title="Delete" aria-label="Delete" data-key="${escapeHtml(String(key))}" onclick="${deleteCall}(this.dataset.key)">✕</button>
+  </div>`;
+}
+
 // ---------- chart of accounts ----------
 
 function chartOfAccountsPage() {
@@ -184,7 +238,7 @@ function chartOfAccountsPage() {
         <td>${escapeHtml(a.name)}</td>
         <td><span class="pill pill-${a.type}">${accountTypes[a.type]}</span></td>
         <td><span class="pill">${a.side === "D" ? "Debit" : "Credit"}</span></td>
-        <td><button class="delete" title="Delete" onclick="deleteAccount('${a.code}')">✕</button></td>
+        <td>${rowActions("editAccount", "deleteAccount", a.code)}</td>
       </tr>`;
   });
 
@@ -277,19 +331,60 @@ function addAccount() {
 }
 
 function deleteAccount(code) {
+  const account = accounts.find(function (x) { return x.code === code; });
+  if (!account) return;
   const inUse = entries.some(function (e) {
     return e.debit === code || e.credit === code;
   });
   if (inUse) {
-    errors.accounts = "Can’t delete " + code + " because it’s used in an entry.";
-    return showPage();
+    return openModal("Can’t delete this account",
+      `<p><b>${escapeHtml(account.code + " · " + account.name)}</b> is used in at least one entry. Delete or change those entries first.</p>`,
+      "OK");
   }
+  openModal("Delete this account?",
+    `<p>You are about to delete <b>${escapeHtml(account.code + " · " + account.name)}</b>.</p><p class="sub">This can’t be undone.</p>`,
+    "Delete account",
+    function () {
+      accounts = accounts.filter(function (x) { return x.code !== code; });
+      showPage();
+    }, true);
+}
 
-  accounts = accounts.filter(function (a) {
-    return a.code !== code;
-  });
-  errors.accounts = "";
-  showPage();
+function editAccount(code) {
+  const account = accounts.find(function (x) { return x.code === code; });
+  if (!account) return;
+  let typeOptions = "";
+  for (const key in accountTypes) {
+    typeOptions += `<option value="${key}"${key === account.type ? " selected" : ""}>${accountTypes[key]}</option>`;
+  }
+  openModal("Edit account",
+    `<div class="modal-form">
+      <label class="field">Code
+        <input id="m-code" value="${escapeHtml(account.code)}" disabled />
+        <small class="sub">The code can’t change because entries and reports refer to it.</small>
+      </label>
+      <label class="field">Account name
+        <input id="m-name" value="${escapeHtml(account.name)}" />
+      </label>
+      <label class="field">Type
+        <select id="m-type">${typeOptions}</select>
+      </label>
+      <label class="field">Normal balance
+        <select id="m-side">
+          <option value="D"${account.side === "D" ? " selected" : ""}>Debit</option>
+          <option value="C"${account.side === "C" ? " selected" : ""}>Credit</option>
+        </select>
+      </label>
+    </div>`,
+    "Save changes",
+    function () {
+      const name = $("#m-name").value.trim();
+      if (!name) return "Enter an account name.";
+      account.name = name;
+      account.type = $("#m-type").value;
+      account.side = $("#m-side").value;
+      showPage();
+    });
 }
 
 // ---------- journal + adjusting entries ----------
@@ -315,7 +410,7 @@ function entryTable(isAdjusting) {
         <td>${escapeHtml(accountName(e.debit))}</td>
         <td class="num">${formatPeso(e.amount)}</td>
         <td></td>
-        <td rowspan="2"><button class="delete" onclick="deleteEntry(${e.id})">✕</button></td>
+        <td rowspan="2">${rowActions("editEntry", "deleteEntry", e.id)}</td>
       </tr>
       <tr>
         <td >
@@ -445,11 +540,64 @@ function postEntry(isAdjusting) {
   showPage();
 }
 
+function findEntry(id) {
+  return entries.find(function (e) { return String(e.id) === String(id); });
+}
+
 function deleteEntry(id) {
-  entries = entries.filter(function (e) {
-    return e.id !== id;
-  });
-  showPage();
+  const e = findEntry(id);
+  if (!e) return;
+  openModal("Delete this entry?",
+    `<p><b>${escapeHtml(e.description)}</b> · ${e.date} · ${formatPeso(e.amount)}</p>
+     <p class="sub">Debit ${escapeHtml(accountName(e.debit))}<br />Credit ${escapeHtml(accountName(e.credit))}</p>
+     <p class="sub">This can’t be undone.</p>`,
+    "Delete entry",
+    function () {
+      entries = entries.filter(function (x) { return x.id !== e.id; });
+      showPage();
+    }, true);
+}
+
+function editEntry(id) {
+  const e = findEntry(id);
+  if (!e) return;
+  openModal(e.isAdjusting ? "Edit adjusting entry" : "Edit transaction",
+    `<div class="modal-form">
+      <label class="field">Date
+        <input type="date" id="m-date" value="${escapeHtml(e.date)}" />
+      </label>
+      <label class="field">Amount (₱)
+        <span class="money"><span class="money-sign">₱</span>
+        <input type="number" min="0" step="0.01" id="m-amount" value="${e.amount}" inputmode="decimal" /></span>
+      </label>
+      <label class="field wide-field">Description
+        <input id="m-desc" value="${escapeHtml(e.description)}" />
+      </label>
+      <label class="field">
+        <span>Debit account <b class="side dr">DR</b></span>
+        <select id="m-debit">${accountOptions(e.debit)}</select>
+      </label>
+      <label class="field">
+        <span>Credit account <b class="side cr">CR</b></span>
+        <select id="m-credit">${accountOptions(e.credit)}</select>
+      </label>
+    </div>`,
+    "Save changes",
+    function () {
+      const date = $("#m-date").value;
+      const description = $("#m-desc").value.trim();
+      const amount = Math.round(parseFloat($("#m-amount").value) * 100) / 100;
+      const debit = $("#m-debit").value;
+      const credit = $("#m-credit").value;
+      if (!date || !description || !(amount > 0)) return "Fill in the date, description and an amount above zero.";
+      if (debit === credit) return "Debit and credit accounts must be different.";
+      e.date = date;
+      e.description = description;
+      e.amount = amount;
+      e.debit = debit;
+      e.credit = credit;
+      showPage();
+    });
 }
 
 function transactionsPage() {
